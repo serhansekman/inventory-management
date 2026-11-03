@@ -308,24 +308,36 @@ def get_recent_transactions():
     """Get recent transactions"""
     return recent_transactions
 
+def filtered_report_orders(warehouse: Optional[str], category: Optional[str],
+                           status: Optional[str], month: Optional[str]) -> list:
+    """Orders after the global filters, so reports agree with the Dashboard and Orders views"""
+    return filter_by_month(apply_filters(orders, warehouse, category, status), month)
+
+def quarter_for(order_date: str) -> Optional[str]:
+    """Map 'YYYY-MM-...' to 'Qn-YYYY', or None if the date is malformed"""
+    # Derived from the date instead of a hardcoded 2025 list, so orders from other years are not silently dropped
+    try:
+        year, month_num = int(order_date[:4]), int(order_date[5:7])
+    except (ValueError, TypeError):
+        return None
+    if not 1 <= month_num <= 12:
+        return None
+    return f"Q{(month_num - 1) // 3 + 1}-{year}"
+
 @app.get("/api/reports/quarterly")
-def get_quarterly_reports():
-    """Get quarterly performance reports"""
+def get_quarterly_reports(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
+    """Get quarterly performance reports with optional filtering"""
     # Calculate quarterly statistics from orders
     quarters = {}
 
-    for order in orders:
-        order_date = order.get('order_date', '')
-        # Determine quarter
-        if '2025-01' in order_date or '2025-02' in order_date or '2025-03' in order_date:
-            quarter = 'Q1-2025'
-        elif '2025-04' in order_date or '2025-05' in order_date or '2025-06' in order_date:
-            quarter = 'Q2-2025'
-        elif '2025-07' in order_date or '2025-08' in order_date or '2025-09' in order_date:
-            quarter = 'Q3-2025'
-        elif '2025-10' in order_date or '2025-11' in order_date or '2025-12' in order_date:
-            quarter = 'Q4-2025'
-        else:
+    for order in filtered_report_orders(warehouse, category, status, month):
+        quarter = quarter_for(order.get('order_date', ''))
+        if quarter is None:
             continue
 
         if quarter not in quarters:
@@ -350,16 +362,21 @@ def get_quarterly_reports():
             data['fulfillment_rate'] = round((data['delivered_orders'] / data['total_orders']) * 100, 1)
         result.append(data)
 
-    # Sort by quarter
-    result.sort(key=lambda x: x['quarter'])
+    # Sort chronologically: by year, then quarter number ('Q1-2026' must come after 'Q4-2025')
+    result.sort(key=lambda x: (x['quarter'][3:], x['quarter'][:2]))
     return result
 
 @app.get("/api/reports/monthly-trends")
-def get_monthly_trends():
-    """Get month-over-month trends"""
+def get_monthly_trends(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    month: Optional[str] = None
+):
+    """Get month-over-month trends with optional filtering"""
     months = {}
 
-    for order in orders:
+    for order in filtered_report_orders(warehouse, category, status, month):
         order_date = order.get('order_date', '')
         if not order_date:
             continue
