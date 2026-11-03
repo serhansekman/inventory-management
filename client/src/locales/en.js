@@ -6,6 +6,7 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -126,7 +127,59 @@ export default {
       status: 'Status',
       expectedDelivery: 'Expected Delivery',
       actualDelivery: 'Actual Delivery'
+    },
+    // Restocking orders submitted from the Restocking page
+    submitted: {
+      title: 'Submitted Orders',
+      description: 'Restocking orders submitted to suppliers. Not affected by the filters above.',
+      empty: 'No restocking orders have been submitted yet.',
+      days: 'days',
+      table: {
+        orderNumber: 'Order Number',
+        submittedDate: 'Submitted',
+        items: 'Items',
+        totalValue: 'Total Value',
+        leadTime: 'Lead Time',
+        expectedDelivery: 'Expected Delivery',
+        status: 'Status'
+      }
     }
+  },
+
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Plan a restocking order based on forecasted demand and your budget',
+    budgetTitle: 'Restocking Budget',
+    budgetLabel: 'Budget',
+    stats: {
+      budget: 'Budget',
+      plannedSpend: 'Planned Spend',
+      remaining: 'Remaining Budget',
+      longestLeadTime: 'Longest Lead Time'
+    },
+    days: 'days',
+    recommendations: 'Recommended Purchases',
+    empty: 'The budget is too low to fund any recommended item. Increase the budget to see recommendations.',
+    table: {
+      sku: 'SKU',
+      itemName: 'Item Name',
+      trend: 'Trend',
+      gap: 'Demand Gap',
+      quantity: 'Recommended Qty',
+      unitCost: 'Unit Cost',
+      lineTotal: 'Line Total',
+      leadTime: 'Lead Time'
+    },
+    ofNeeded: 'of {count} needed',
+    placeOrder: 'Place Order',
+    submitting: 'Submitting...',
+    success: {
+      title: 'Order submitted',
+      message: 'Order {orderNumber} was submitted for {total} with a lead time of {days} days.',
+      viewOrders: 'View it in the Orders tab'
+    },
+    submitFailed: 'Failed to place the restocking order'
   },
 
   // Finance/Spending

@@ -74,6 +74,54 @@
           </table>
         </div>
       </div>
+
+      <!-- Submitted restocking orders; intentionally not driven by the global filters -->
+      <div class="card submitted-card">
+        <div class="card-header">
+          <h3 class="card-title">{{ t('orders.submitted.title') }} ({{ submittedOrders.length }})</h3>
+          <p class="submitted-description">{{ t('orders.submitted.description') }}</p>
+        </div>
+        <div v-if="submittedError" class="error">{{ submittedError }}</div>
+        <div v-else-if="submittedOrders.length === 0" class="submitted-empty">{{ t('orders.submitted.empty') }}</div>
+        <div v-else class="table-container">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th class="col-order-number">{{ t('orders.submitted.table.orderNumber') }}</th>
+                <th class="col-date">{{ t('orders.submitted.table.submittedDate') }}</th>
+                <th class="col-items">{{ t('orders.submitted.table.items') }}</th>
+                <th class="col-value">{{ t('orders.submitted.table.totalValue') }}</th>
+                <th class="col-date">{{ t('orders.submitted.table.leadTime') }}</th>
+                <th class="col-date">{{ t('orders.submitted.table.expectedDelivery') }}</th>
+                <th class="col-status">{{ t('orders.submitted.table.status') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in submittedOrders" :key="order.id">
+                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-date">{{ formatDate(order.submitted_date) }}</td>
+                <td class="col-items">
+                  <details class="items-details">
+                    <summary class="items-summary">
+                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                    </summary>
+                    <div class="items-dropdown">
+                      <div v-for="item in order.items" :key="item.item_sku" class="item-entry">
+                        <span class="item-name">{{ item.item_sku }} - {{ item.item_name }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }}</span>
+                      </div>
+                    </div>
+                  </details>
+                </td>
+                <td class="col-value"><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
+                <td class="col-date">{{ order.lead_time_days }} {{ t('orders.submitted.days') }}</td>
+                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
+                <td class="col-status"><span class="badge info">{{ order.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -95,6 +143,8 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const submittedOrders = ref([])
+    const submittedError = ref(null)
 
     // Use shared filters
     const {
@@ -124,6 +174,18 @@ export default {
       }
     }
 
+    // Submitted restocking orders are not filtered by the global filters,
+    // so this is loaded on mount only. A failure here must not break the main table.
+    const loadSubmittedOrders = async () => {
+      try {
+        submittedError.value = null
+        submittedOrders.value = await api.getRestockingOrders()
+      } catch (err) {
+        submittedError.value = 'Failed to load submitted orders'
+        console.error('Failed to load submitted orders:', err)
+      }
+    }
+
     // Watch for filter changes and reload data
     watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
       loadOrders()
@@ -146,20 +208,28 @@ export default {
     const formatDate = (dateString) => {
       const { currentLocale } = useI18n()
       const locale = currentLocale.value === 'ja' ? 'ja-JP' : 'en-US'
-      return new Date(dateString).toLocaleDateString(locale, {
+      // Validate before formatting to avoid "Invalid Date"
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '-'
+      return date.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadSubmittedOrders()
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      submittedOrders,
+      submittedError,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
@@ -172,6 +242,22 @@ export default {
 </script>
 
 <style scoped>
+.submitted-card {
+  margin-top: 1.5rem;
+}
+
+.submitted-description {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.submitted-empty {
+  padding: 1.5rem;
+  color: #64748b;
+  text-align: center;
+}
+
 /* Fixed table layout to prevent column shifting */
 .orders-table {
   table-layout: fixed;

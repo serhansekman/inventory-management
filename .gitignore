@@ -53,3 +53,9 @@ logs/
 
 # Environment variables
 .env
+
+# Playwright e2e (tests/e2e): lockfile ignored like client/ so local registries never leak
+tests/e2e/package-lock.json
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+.playwright-mcp/
