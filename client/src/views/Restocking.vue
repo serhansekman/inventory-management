@@ -1,16 +1,16 @@
 <template>
   <div class="restocking">
     <div class="page-header">
-      <h2>{{ t('restocking.title') }}</h2>
-      <p>{{ t('restocking.description') }}</p>
+      <h2>{{ t("restocking.title") }}</h2>
+      <p>{{ t("restocking.description") }}</p>
     </div>
 
-    <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
+    <div v-if="loading" class="loading">{{ t("common.loading") }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
       <div class="card budget-card">
         <div class="card-header">
-          <h3 class="card-title">{{ t('restocking.budgetTitle') }}</h3>
+          <h3 class="card-title">{{ t("restocking.budgetTitle") }}</h3>
           <span class="budget-amount">{{ formatCurrency(budget) }}</span>
         </div>
         <input
@@ -30,79 +30,103 @@
 
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">{{ t('restocking.stats.budget') }}</div>
+          <div class="stat-label">{{ t("restocking.stats.budget") }}</div>
           <div class="stat-value">{{ formatCurrency(budget) }}</div>
         </div>
         <div class="stat-card info">
-          <div class="stat-label">{{ t('restocking.stats.plannedSpend') }}</div>
+          <div class="stat-label">{{ t("restocking.stats.plannedSpend") }}</div>
           <div class="stat-value">{{ formatCurrency(plannedSpend) }}</div>
         </div>
         <div class="stat-card success">
-          <div class="stat-label">{{ t('restocking.stats.remaining') }}</div>
+          <div class="stat-label">{{ t("restocking.stats.remaining") }}</div>
           <div class="stat-value">{{ formatCurrency(remainingBudget) }}</div>
         </div>
         <div class="stat-card warning">
-          <div class="stat-label">{{ t('restocking.stats.longestLeadTime') }}</div>
-          <div class="stat-value">{{ longestLeadTime }} {{ t('restocking.days') }}</div>
+          <div class="stat-label">
+            {{ t("restocking.stats.longestLeadTime") }}
+          </div>
+          <div class="stat-value">
+            {{ longestLeadTime }} {{ t("restocking.days") }}
+          </div>
         </div>
       </div>
 
       <div v-if="orderResult" class="success-banner" role="status">
-        <strong>{{ t('restocking.success.title') }}.</strong>
-        {{ t('restocking.success.message', {
-          orderNumber: orderResult.order_number,
-          total: formatCurrency(orderResult.total_value),
-          days: orderResult.lead_time_days
-        }) }}
-        <router-link to="/orders">{{ t('restocking.success.viewOrders') }}</router-link>
+        <strong>{{ t("restocking.success.title") }}.</strong>
+        {{
+          t("restocking.success.message", {
+            orderNumber: orderResult.order_number,
+            total: formatCurrency(orderResult.total_value),
+            days: orderResult.lead_time_days,
+          })
+        }}
+        <router-link to="/orders">{{
+          t("restocking.success.viewOrders")
+        }}</router-link>
       </div>
-      <div v-if="submitError" class="error submit-error" role="alert">{{ submitError }}</div>
+      <div v-if="submitError" class="error submit-error" role="alert">
+        {{ submitError }}
+      </div>
 
       <div class="card">
         <div class="card-header">
-          <h3 class="card-title">{{ t('restocking.recommendations') }} ({{ recommendations.length }})</h3>
+          <h3 class="card-title">
+            {{ t("restocking.recommendations") }} ({{ recommendations.length }})
+          </h3>
           <button
             type="button"
             class="place-order-btn"
             :disabled="recommendations.length === 0 || submitting"
             @click="placeOrder"
           >
-            {{ submitting ? t('restocking.submitting') : t('restocking.placeOrder') }}
+            {{
+              submitting
+                ? t("restocking.submitting")
+                : t("restocking.placeOrder")
+            }}
           </button>
         </div>
 
-        <div v-if="recommendations.length === 0" class="empty-state">{{ t('restocking.empty') }}</div>
+        <div v-if="recommendations.length === 0" class="empty-state">
+          {{ t("restocking.empty") }}
+        </div>
         <div v-else class="table-container">
           <table>
             <thead>
               <tr>
-                <th>{{ t('restocking.table.sku') }}</th>
-                <th>{{ t('restocking.table.itemName') }}</th>
-                <th>{{ t('restocking.table.trend') }}</th>
-                <th>{{ t('restocking.table.gap') }}</th>
-                <th>{{ t('restocking.table.quantity') }}</th>
-                <th>{{ t('restocking.table.unitCost') }}</th>
-                <th>{{ t('restocking.table.lineTotal') }}</th>
-                <th>{{ t('restocking.table.leadTime') }}</th>
+                <th>{{ t("restocking.table.sku") }}</th>
+                <th>{{ t("restocking.table.itemName") }}</th>
+                <th>{{ t("restocking.table.trend") }}</th>
+                <th>{{ t("restocking.table.gap") }}</th>
+                <th>{{ t("restocking.table.quantity") }}</th>
+                <th>{{ t("restocking.table.unitCost") }}</th>
+                <th>{{ t("restocking.table.lineTotal") }}</th>
+                <th>{{ t("restocking.table.leadTime") }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="rec in recommendations" :key="rec.item_sku">
-                <td><strong>{{ rec.item_sku }}</strong></td>
+                <td>
+                  <strong>{{ rec.item_sku }}</strong>
+                </td>
                 <td>{{ rec.item_name }}</td>
                 <td>
-                  <span :class="['badge', rec.trend]">{{ t(`trends.${rec.trend}`) }}</span>
+                  <span :class="['badge', rec.trend]">{{
+                    t(`trends.${rec.trend}`)
+                  }}</span>
                 </td>
                 <td>{{ rec.gap }}</td>
                 <td>
                   <strong>{{ rec.quantity }}</strong>
                   <span v-if="rec.quantity < rec.gap" class="partial-note">
-                    {{ t('restocking.ofNeeded', { count: rec.gap }) }}
+                    {{ t("restocking.ofNeeded", { count: rec.gap }) }}
                   </span>
                 </td>
                 <td>{{ formatCurrency(rec.unit_cost) }}</td>
-                <td><strong>{{ formatCurrency(rec.lineTotal) }}</strong></td>
-                <td>{{ rec.lead_time_days }} {{ t('restocking.days') }}</td>
+                <td>
+                  <strong>{{ formatCurrency(rec.lineTotal) }}</strong>
+                </td>
+                <td>{{ rec.lead_time_days }} {{ t("restocking.days") }}</td>
               </tr>
             </tbody>
           </table>
@@ -113,29 +137,30 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { api } from '../api'
-import { useI18n } from '../composables/useI18n'
+import { ref, computed, onMounted } from "vue";
+import { api } from "../api";
+import { useI18n } from "../composables/useI18n";
 
 export default {
-  name: 'Restocking',
+  name: "Restocking",
   setup() {
-    const { t, currentCurrency } = useI18n()
+    const { t, currentCurrency } = useI18n();
 
     const currencySymbol = computed(() => {
-      return currentCurrency.value === 'JPY' ? '¥' : '$'
-    })
+      return currentCurrency.value === "JPY" ? "¥" : "$";
+    });
 
-    const loading = ref(true)
-    const error = ref(null)
-    const forecasts = ref([])
-    const budget = ref(100000)
+    const loading = ref(true);
+    const error = ref(null);
+    const forecasts = ref([]);
+    const budget = ref(100000);
 
-    const submitting = ref(false)
-    const submitError = ref(null)
-    const orderResult = ref(null)
+    const submitting = ref(false);
+    const submitError = ref(null);
+    const orderResult = ref(null);
 
-    const formatCurrency = (value) => `${currencySymbol.value}${Number(value).toLocaleString()}`
+    const formatCurrency = (value) =>
+      `${currencySymbol.value}${Number(value).toLocaleString()}`;
 
     // Greedy budget allocation.
     // Candidates: items whose forecast exceeds current demand (gap > 0).
@@ -145,73 +170,80 @@ export default {
     // so the last funded item may be only partially funded (quantity < gap).
     const recommendations = computed(() => {
       const candidates = forecasts.value
-        .map(f => ({ ...f, gap: f.forecasted_demand - f.current_demand }))
-        .filter(f => f.gap > 0)
+        .map((f) => ({ ...f, gap: f.forecasted_demand - f.current_demand }))
+        .filter((f) => f.gap > 0)
         .sort((a, b) => {
-          const aInc = a.trend === 'increasing' ? 0 : 1
-          const bInc = b.trend === 'increasing' ? 0 : 1
-          if (aInc !== bInc) return aInc - bInc
-          return b.gap - a.gap
-        })
+          const aInc = a.trend === "increasing" ? 0 : 1;
+          const bInc = b.trend === "increasing" ? 0 : 1;
+          if (aInc !== bInc) return aInc - bInc;
+          return b.gap - a.gap;
+        });
 
-      let remaining = budget.value
-      const result = []
+      let remaining = budget.value;
+      const result = [];
       for (const item of candidates) {
-        if (!(item.unit_cost > 0)) continue // guard against division by zero
-        const quantity = Math.min(item.gap, Math.floor(remaining / item.unit_cost))
-        if (quantity <= 0) continue
-        const lineTotal = quantity * item.unit_cost
-        remaining -= lineTotal
-        result.push({ ...item, quantity, lineTotal })
+        if (!(item.unit_cost > 0)) continue; // guard against division by zero
+        const quantity = Math.min(
+          item.gap,
+          Math.floor(remaining / item.unit_cost),
+        );
+        if (quantity <= 0) continue;
+        const lineTotal = quantity * item.unit_cost;
+        remaining -= lineTotal;
+        result.push({ ...item, quantity, lineTotal });
       }
-      return result
-    })
+      return result;
+    });
 
     const plannedSpend = computed(() =>
-      recommendations.value.reduce((sum, r) => sum + r.lineTotal, 0)
-    )
+      recommendations.value.reduce((sum, r) => sum + r.lineTotal, 0),
+    );
 
-    const remainingBudget = computed(() => budget.value - plannedSpend.value)
+    const remainingBudget = computed(() => budget.value - plannedSpend.value);
 
     const longestLeadTime = computed(() =>
-      recommendations.value.reduce((max, r) => Math.max(max, r.lead_time_days), 0)
-    )
+      recommendations.value.reduce(
+        (max, r) => Math.max(max, r.lead_time_days),
+        0,
+      ),
+    );
 
     const loadForecasts = async () => {
       try {
-        loading.value = true
-        error.value = null
-        forecasts.value = await api.getDemandForecasts()
+        loading.value = true;
+        error.value = null;
+        forecasts.value = await api.getDemandForecasts();
       } catch (err) {
-        error.value = 'Failed to load demand forecasts: ' + err.message
-        console.error('Load error:', err)
+        error.value = "Failed to load demand forecasts: " + err.message;
+        console.error("Load error:", err);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const placeOrder = async () => {
-      if (recommendations.value.length === 0 || submitting.value) return
+      if (recommendations.value.length === 0 || submitting.value) return;
       try {
-        submitting.value = true
-        submitError.value = null
-        orderResult.value = null
+        submitting.value = true;
+        submitError.value = null;
+        orderResult.value = null;
         orderResult.value = await api.createRestockingOrder({
           budget: budget.value,
-          items: recommendations.value.map(r => ({
+          items: recommendations.value.map((r) => ({
             item_sku: r.item_sku,
-            quantity: r.quantity
-          }))
-        })
+            quantity: r.quantity,
+          })),
+        });
       } catch (err) {
-        submitError.value = err.response?.data?.detail || t('restocking.submitFailed')
-        console.error('Failed to place restocking order:', err)
+        submitError.value =
+          err.response?.data?.detail || t("restocking.submitFailed");
+        console.error("Failed to place restocking order:", err);
       } finally {
-        submitting.value = false
+        submitting.value = false;
       }
-    }
+    };
 
-    onMounted(loadForecasts)
+    onMounted(loadForecasts);
 
     return {
       t,
@@ -226,10 +258,10 @@ export default {
       submitError,
       orderResult,
       formatCurrency,
-      placeOrder
-    }
-  }
-}
+      placeOrder,
+    };
+  },
+};
 </script>
 
 <style scoped>
