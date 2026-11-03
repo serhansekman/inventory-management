@@ -11,7 +11,10 @@
     "e2e:restocking": "playwright test restocking",
     "e2e:filters": "playwright test filters",
     "e2e:i18n": "playwright test i18n",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "e2e:pages": "playwright test dashboard inventory orders finance demand backlog reports restocking",
+    "e2e:ui": "playwright test ui i18n i18n-pages",
+    "e2e:known": "playwright test known-issues"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"
