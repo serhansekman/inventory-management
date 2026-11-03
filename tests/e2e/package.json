@@ -1,0 +1,19 @@
+{
+  "name": "inventory-management-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end suites. Separate from client/ so the app bundle never pulls in test tooling.",
+  "scripts": {
+    "setup": "playwright install chromium",
+    "e2e": "playwright test",
+    "e2e:smoke": "playwright test smoke",
+    "e2e:restocking": "playwright test restocking",
+    "e2e:filters": "playwright test filters",
+    "e2e:i18n": "playwright test i18n",
+    "e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
